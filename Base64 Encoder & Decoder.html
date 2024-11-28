@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 Encoder & Decoder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Base64 Encoder & Decoder</h1>
+    <p><b>Masukkan teks yang ingin dienkode atau didekode:</b></p>
+    <textarea id="inputText" placeholder="Masukkan teks di sini..."></textarea>
+    <br>
+    <button onclick="encodeBase64()">Encode ke Base64</button>
+    <button onclick="decodeBase64()">Decode dari Base64</button>
+    <div id="result" class="result" hidden>
+        <h3>Hasil:</h3>
+        <textarea id="outputText" readonly></textarea>
+    </div>
+
+    <script>
+        // Encode function
+        function encodeBase64() {
+            const inputText = document.getElementById('inputText').value;
+            try {
+                const encoded = btoa(unescape(encodeURIComponent(inputText)));
+                showResult(encoded);
+            } catch (e) {
+                alert("Teks tidak valid untuk encoding!");
+            }
+        }
+
+        // Decode function
+        function decodeBase64() {
+            const inputText = document.getElementById('inputText').value;
+            try {
+                const decoded = decodeURIComponent(escape(atob(inputText)));
+                showResult(decoded);
+            } catch (e) {
+                alert("Base64 tidak valid untuk decoding!");
+            }
+        }
+
+        // Function to display the result
+        function showResult(result) {
+            document.getElementById('outputText').value = result;
+            document.getElementById('result').hidden = false;
+        }
+    </script>
+</body>
+</html>
