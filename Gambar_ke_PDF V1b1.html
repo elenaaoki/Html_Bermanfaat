@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gambar jadi PDF</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f4f4f9;
+    }
+    .container {
+      max-width: 600px;
+      width: 90%;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      background-color: #fff;
+      text-align: center;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    label {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    label:hover {
+      background-color: #0056b3;
+    }
+    .output {
+      margin-top: 20px;
+    }
+    input[type="text"], select {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gambar jadi PDF</h1>
+    <p>Pilih gambar/beberapa gambar untuk diubah menjadi PDF:</p>
+    <label for="imageInput">Upload Gambar</label>
+    <input type="file" id="imageInput" accept="image/*" multiple>
+    <div class="output"></div>
+    <input type="text" id="pdfName" placeholder="Masukkan nama file PDF (tanpa ekstensi)">
+    
+    <label for="pageOrientation">Orientasi:</label>
+    <select id="pageOrientation">
+      <option value="portrait">Portrait</option>
+      <option value="landscape">Landscape</option>
+    </select>
+    
+    <label for="pageSize">Ukuran Kertas:</label>
+    <select id="pageSize">
+      <option value="a4">A4</option>
+      <option value="letter">Letter</option>
+      <option value="f4">F4</option>
+      <option value="custom">Custom (sesuai ukuran gambar)</option>
+    </select>
+    
+    <button id="generatePdf" disabled>Buat PDF</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
+    const imageInput = document.getElementById('imageInput');
+    const generatePdfButton = document.getElementById('generatePdf');
+    const outputDiv = document.querySelector('.output');
+    let images = [];
+
+    imageInput.addEventListener('change', (event) => {
+      images = [];
+      outputDiv.innerHTML = ''; // Clear previous images
+      const files = event.target.files;
+
+      for (const file of files) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target.result;
+          img.style.maxWidth = '100px';
+          img.style.margin = '5px';
+          outputDiv.appendChild(img);
+          images.push(img);
+        };
+        reader.readAsDataURL(file);
+      }
+
+      if (files.length > 0) {
+        generatePdfButton.disabled = false;
+      }
+    });
+
+    generatePdfButton.addEventListener('click', () => {
+      const orientation = document.getElementById('pageOrientation').value;
+      const size = document.getElementById('pageSize').value;
+      const pdfName = document.getElementById('pdfName').value || 'file';
+      let pdf;
+
+      images.forEach((image, index) => {
+        let pageWidth, pageHeight;
+        if (size === 'custom') {
+          // Custom size: match the image dimensions in mm
+          const imgWidth = image.naturalWidth / 96 * 25.4; // Convert px to mm
+          const imgHeight = image.naturalHeight / 96 * 25.4; // Convert px to mm
+          pageWidth = imgWidth;
+          pageHeight = imgHeight;
+          pdf = new jsPDF({ orientation, unit: 'mm', format: [pageWidth, pageHeight] });
+        } else if (index === 0) {
+          // Set up PDF for the first image based on standard size
+          if (size === 'f4') {
+            pdf = new jsPDF({ orientation, unit: 'mm', format: [210, 330] });
+          } else {
+            pdf = new jsPDF({ orientation, unit: 'mm', format: size });
+          }
+          pageWidth = pdf.internal.pageSize.getWidth();
+          pageHeight = pdf.internal.pageSize.getHeight();
+        }
+
+        if (index > 0) pdf.addPage([pageWidth, pageHeight]); // Add new page with the same size
+
+        const imgRatio = Math.min(pageWidth / image.naturalWidth, pageHeight / image.naturalHeight);
+        const imgX = (pageWidth - image.naturalWidth * imgRatio) / 2;
+        const imgY = (pageHeight - image.naturalHeight * imgRatio) / 2;
+
+        pdf.addImage(image.src, 'JPEG', imgX, imgY, image.naturalWidth * imgRatio, image.naturalHeight * imgRatio);
+      });
+
+      pdf.save(`${pdfName}.pdf`);
+    });
+  </script>
+</body>
+</html>
