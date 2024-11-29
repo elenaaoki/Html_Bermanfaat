@@ -29,13 +29,21 @@
             font-weight: bold;
         }
         input, select, button {
-            width: calc(100% - 20px);
+            width: 100%;
             margin-top: 5px;
             padding: 10px;
             font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
+        }
+        .flex-input {
+            display: flex;
+            gap: 10px;
+        }
+        .flex-input input, 
+        .flex-input select {
+            flex: 1;
         }
         button {
             background-color: #4CAF50;
@@ -53,42 +61,50 @@
             background: #f9f9f9;
             border: 1px solid #ddd;
             border-radius: 5px;
-            position: relative;
         }
-        .hide {
+        .hidden {
             display: none;
+        }
+        #hasilScreenshot {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            width: calc(100% - 40px); /* Luas screenshot diperluas */
+            box-sizing: border-box;
+        }
+        #hasilScreenshot p {
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Kalkulator Weton</h1>
-        <label for="tanggal">Tanggal:</label>
-        <input type="text" id="tanggal" placeholder="Contoh: 9 atau 09">
-
-        <label for="bulan">Bulan:</label>
-        <select id="bulan">
-            <option value="1">Januari</option>
-            <option value="2">Februari</option>
-            <option value="3">Maret</option>
-            <option value="4">April</option>
-            <option value="5">Mei</option>
-            <option value="6">Juni</option>
-            <option value="7">Juli</option>
-            <option value="8">Agustus</option>
-            <option value="9">September</option>
-            <option value="10">Oktober</option>
-            <option value="11">November</option>
-            <option value="12">Desember</option>
-        </select>
-
-        <label for="tahun">Tahun:</label>
-        <input type="number" id="tahun" placeholder="Contoh: 1995">
-
+        <div class="flex-input">
+            <input type="number" id="tanggal" placeholder="Tanggal" min="1" max="31">
+            <select id="bulan">
+                <option value="1">Januari</option>
+                <option value="2">Februari</option>
+                <option value="3">Maret</option>
+                <option value="4">April</option>
+                <option value="5">Mei</option>
+                <option value="6">Juni</option>
+                <option value="7">Juli</option>
+                <option value="8">Agustus</option>
+                <option value="9">September</option>
+                <option value="10">Oktober</option>
+                <option value="11">November</option>
+                <option value="12">Desember</option>
+            </select>
+            <input type="number" id="tahun" placeholder="Tahun">
+        </div>
         <button onclick="hitungWeton()">Hitung Weton</button>
 
-        <div class="result hide" id="hasil">
-            <div id="hasilTeks" style="padding: 10px;">
+        <div class="result hidden" id="hasil">
+            <h2>Hasil Weton</h2>
+            <div id="hasilScreenshot">
                 <p id="tanggalMasehi"></p>
                 <p id="tanggalHijriah"></p>
                 <p id="tanggalJawa"></p>
@@ -96,72 +112,75 @@
                 <p id="neptu"></p>
                 <p id="tahunWarsa"></p>
             </div>
-            <button onclick="downloadImage()">Download Hasil</button>
+            <button class="hidden" id="downloadBtn" onclick="downloadHasil()">Download Hasil</button>
         </div>
     </div>
 
-    <canvas id="canvas" class="hide"></canvas>
+    <!-- Load html2canvas -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
     <script>
-        function hitungWeton() {
-            const tanggalInput = document.getElementById("tanggal").value;
-            const bulan = document.getElementById("bulan").value;
-            const tahun = document.getElementById("tahun").value;
+        const neptu = {
+            'Senin': { 'Pon': 11, 'Wage': 8, 'Kliwon': 12, 'Legi': 9, 'Pahing': 13 },
+            'Selasa': { 'Pon': 10, 'Wage': 7, 'Kliwon': 11, 'Legi': 8, 'Pahing': 12 },
+            'Rabu': { 'Pon': 14, 'Wage': 11, 'Kliwon': 15, 'Legi': 12, 'Pahing': 16 },
+            'Kamis': { 'Pon': 15, 'Wage': 12, 'Kliwon': 16, 'Legi': 13, 'Pahing': 17 },
+            'Jumat': { 'Pon': 13, 'Wage': 10, 'Kliwon': 14, 'Legi': 11, 'Pahing': 15 },
+            'Sabtu': { 'Pon': 16, 'Wage': 13, 'Kliwon': 17, 'Legi': 14, 'Pahing': 18 },
+            'Minggu': { 'Pon': 12, 'Wage': 9, 'Kliwon': 13, 'Legi': 10, 'Pahing': 14 }
+        };
 
-            if (!tanggalInput || !bulan || !tahun) {
+        function zyxwhtnsq(e) {
+            const hari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+            return hari[e.getDay()];
+        }
+
+        function ovmljgfdib(e) {
+            const ins = new Date(70, 0, 2);
+            const hasilBagi = (e.getTime() - ins.getTime() + 864e5) / 432e6;
+            const sisa = Math.round((hasilBagi - Math.floor(hasilBagi)) * 10) / 2;
+            return ["Wage", "Kliwon", "Legi", "Pahing", "Pon"][sisa];
+        }
+
+        function hitungWeton() {
+            const tanggal = parseInt(document.getElementById("tanggal").value);
+            const bulan = parseInt(document.getElementById("bulan").value) - 1;
+            const tahun = parseInt(document.getElementById("tahun").value);
+
+            if (!tanggal || !bulan || !tahun) {
                 alert("Mohon lengkapi semua data.");
                 return;
             }
 
-            // Memastikan tanggal valid
-            const tanggal = parseInt(tanggalInput, 10);
+            const tanggalMasehi = new Date(tahun, bulan, tanggal);
+            const hari = zyxwhtnsq(tanggalMasehi);
+            const pasaran = ovmljgfdib(tanggalMasehi);
+            const neptuValue = neptu[hari][pasaran];
 
-            if (isNaN(tanggal) || tanggal < 1 || tanggal > 31) {
-                alert("Tanggal tidak valid. Mohon masukkan angka antara 1 dan 31.");
-                return;
-            }
+            // Placeholder Hijriah & Jawa
+            const hijriah = `${tanggal} Rajab 1445 H`;
+            const tahunJawa = "Dal";
 
-            const masehi = `${tanggalInput.padStart(2, '0')} ${document.getElementById("bulan").options[bulan - 1].text} ${tahun}`;
-            const hijriah = "8 Syakban 1415 H"; // Contoh saja
-            const jawa = "8 Ruwah 1927 Ja"; // Contoh saja
-            const pasaran = "Senin Pon"; // Contoh saja
-            const neptu = "11"; // Contoh saja
-            const tahunWarsa = "Dal"; // Contoh saja
-
-            document.getElementById("tanggalMasehi").innerText = `Tanggal Lahir (Masehi): ${masehi}`;
+            document.getElementById("tanggalMasehi").innerText = `Tanggal Lahir (Masehi): ${tanggal} ${document.getElementById("bulan").options[bulan].text} ${tahun} M`;
             document.getElementById("tanggalHijriah").innerText = `Tanggal Lahir (Hijriah): ${hijriah}`;
-            document.getElementById("tanggalJawa").innerText = `Tanggal Lahir (Jawa): ${jawa}`;
-            document.getElementById("pasaran").innerText = `Pasaran: ${pasaran}`;
-            document.getElementById("neptu").innerText = `Neptu: ${neptu}`;
-            document.getElementById("tahunWarsa").innerText = `Warsa (Jawa): ${tahunWarsa}`;
+            document.getElementById("tanggalJawa").innerText = `Tanggal Lahir (Jawa): ${tanggal} Ruwah 1927 Ja`;
+            document.getElementById("pasaran").innerText = `Pasaran: ${hari} ${pasaran}`;
+            document.getElementById("neptu").innerText = `Neptu: ${neptuValue}`;
+            document.getElementById("tahunWarsa").innerText = `Warsa (Jawa): ${tahunJawa}`;
 
-            document.getElementById("hasil").classList.remove("hide");
+            document.getElementById("hasil").classList.remove("hidden");
+            document.getElementById("downloadBtn").classList.remove("hidden");
         }
 
-        function downloadImage() {
-            const canvas = document.getElementById("canvas");
-            const hasilTeks = document.getElementById("hasilTeks");
-            const rect = hasilTeks.getBoundingClientRect();
+        function downloadHasil() {
+            const hasilScreenshot = document.getElementById("hasilScreenshot");
 
-            canvas.width = rect.width + 20; // Memberi margin lebih
-            canvas.height = rect.height + 20; // Tambahkan margin untuk teks bawah
-            const ctx = canvas.getContext("2d");
-
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.font = "16px Arial";
-            ctx.fillStyle = "black";
-
-            const lines = hasilTeks.innerText.split("\n");
-            lines.forEach((line, index) => {
-                ctx.fillText(line, 10, 30 + index * 20);
+            html2canvas(hasilScreenshot, { scale: 2 }).then(canvas => {
+                const link = document.createElement("a");
+                link.download = "hasil-weton.png";
+                link.href = canvas.toDataURL("image/png");
+                link.click();
             });
-
-            const link = document.createElement("a");
-            link.download = "hasil-weton.png";
-            link.href = canvas.toDataURL("image/png");
-            link.click();
         }
     </script>
 </body>
