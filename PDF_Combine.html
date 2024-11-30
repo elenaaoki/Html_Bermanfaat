@@ -125,19 +125,6 @@
     </div>
 
     <script>
-          // Redirect saat Ctrl+U ditekan
-  document.addEventListener('keydown', (event) => {
-    if (event.ctrlKey && event.key === 'u') {
-      event.preventDefault(); // 
-      window.location.href = 'https://www.chapteria.com';
-    }
-  });
-
-  // Redirect saat klik kanan
-  document.addEventListener('contextmenu', (event) => {
-    event.preventDefault(); // Mencegah menu konteks tampil
-    window.location.href = 'https://www.chapteria.com';
-  });
         const fileInput = document.getElementById('file-input');
         const fileList = document.getElementById('file-list');
         const combineBtn = document.getElementById('combine-btn');
