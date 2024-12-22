@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konversi Nomor KTP ke Informasi Pribadi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Konversi Nomor KTP ke Informasi Pribadi</h1>
+        <input type="text" id="ktpNumber" placeholder="Masukkan nomor KTP" maxlength="16">
+        <button onclick="checkPersonalInfo()">Cek Informasi</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const regionCodes = {
+            '3314': 'Sragen',
+            '3372': 'Surakarta',
+            '3315': 'Grobogan',
+            '3316': 'Blora',
+            '3317': 'Rembang',
+            '3318': 'Pati',
+            '3319': 'Kudus',
+            '3320': 'Jepara',
+            // Tambahkan kode wilayah lainnya sesuai kebutuhan
+        };
+
+        function checkPersonalInfo() {
+            const ktpNumber = document.getElementById('ktpNumber').value;
+            const resultDiv = document.getElementById('result');
+
+            if (ktpNumber.length !== 16) {
+                resultDiv.innerHTML = "Nomor KTP harus terdiri dari 16 digit.";
+                return;
+            }
+
+            const regionCode = ktpNumber.substr(0, 4);
+            let day = parseInt(ktpNumber.substr(6, 2));
+            const month = parseInt(ktpNumber.substr(8, 2));
+            const year = parseInt(ktpNumber.substr(10, 2));
+
+            // Adjust for female birth dates (40 is added to the day for females)
+            const gender = day > 40 ? "Perempuan" : "Laki-laki";
+            if (day > 40) {
+                day -= 40;
+            }
+
+            // Determine the century
+            let fullYear;
+            if (year < 30) {  // Assuming years 00-29 are in the 2000s
+                fullYear = 2000 + year;
+            } else {
+                fullYear = 1900 + year;
+            }
+
+            // Create date object and format it
+            const birthDate = new Date(fullYear, month - 1, day);
+            const formattedDate = birthDate.toLocaleDateString('id-ID', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            const birthPlace = regionCodes[regionCode] || 'Tidak diketahui';
+
+            resultDiv.innerHTML = `
+                <p><strong>Tempat, Tanggal Lahir:</strong> ${birthPlace}, ${formattedDate}</p>
+                <p><strong>Jenis Kelamin:</strong> ${gender}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
