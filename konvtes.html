@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Konversi Nomor KTP ke Informasi Pribadi</title>
+    <title>Cek Tanggal Lahir dari Nomor KTP</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -48,12 +48,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>Konversi Nomor KTP ke Informasi Pribadi</h1>
+        <h1>Cek Tanggal Lahir dari Nomor KTP</h1>
         <input type="text" id="ktpNumber" placeholder="Masukkan nomor KTP" maxlength="16">
         <button onclick="checkPersonalInfo()">Cek Informasi</button>
         <div id="result"></div>
+		<p> <b>catatan:</b></p><p><i>Tempat lahir hanya mempermudah 'perkiraan' saja berdasarkan <b>kode wilayah</b> KTP dibuat. Meskipun kode wilayahnya sudah benar, <b>belum tentu</b> yang bersangkutan yang tertulis di KTP lahir di tempat tersebut.</i></p>
     </div>
-
     <script>
         const regionCodes = {
             '3314': 'Sragen',
