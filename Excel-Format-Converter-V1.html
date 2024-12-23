@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Format Converter</title>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Excel Format Converter</h1>
+        <div class="upload-area">
+            <input type="file" id="fileInput" accept=".xlsx, .xls" style="display: none;">
+            <button onclick="document.getElementById('fileInput').click()">Choose Excel File</button>
+            <p>or drag and drop file here</p>
+        </div>
+        <div class="buttons">
+            <button id="downloadBtn" disabled>Download Converted File</button>
+        </div>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const uploadArea = document.querySelector('.upload-area');
+        const fileInput = document.getElementById('fileInput');
+        const statusDiv = document.getElementById('status');
+        const downloadBtn = document.getElementById('downloadBtn');
+        let convertedWorkbook = null;
+
+        // Drag and drop handlers
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#4CAF50';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#ccc';
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ccc';
+            const file = e.dataTransfer.files[0];
+            if (file.type.includes('sheet') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                processFile(file);
+            } else {
+                showStatus('Please upload an Excel file (.xlsx or .xls)', 'error');
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) processFile(file);
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            if (convertedWorkbook) {
+                XLSX.writeFile(convertedWorkbook, 'converted_format.xlsx');
+                showStatus('File downloaded successfully!', 'success');
+            }
+        });
+
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = type;
+        }
+
+        function processFile(file) {
+            showStatus('Processing file...', 'success');
+            downloadBtn.disabled = true;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: ['No', 'NIS', 'NAMA', 'KELAS', 'TEMPAT_PRAKERIN']});
+                    
+                    // Remove header row if present
+                    if (jsonData[0].No === 'No.' || jsonData[0].No === 'No') {
+                        jsonData.shift();
+                    }
+
+                    // Group by TEMPAT_PRAKERIN
+                    const grouped = {};
+                    jsonData.forEach(row => {
+                        if (!grouped[row.TEMPAT_PRAKERIN]) {
+                            grouped[row.TEMPAT_PRAKERIN] = [];
+                        }
+                        grouped[row.TEMPAT_PRAKERIN].push(row);
+                    });
+
+                    // Create new format
+                    const newData = [];
+                    let no1 = 1;
+                    for (const location in grouped) {
+                        const group = grouped[location];
+                        const row = {
+                            'NO1': no1,
+                            'NO2': group.map((_, i) => i + 1).join('\n'),
+                            'NIS': group.map(g => g.NIS).join('\n'),
+                            'NAMA': group.map(g => g.NAMA).join('\n'),
+                            'KELAS': group.map(g => g.KELAS).join('\n'),
+                            'TEMPAT_PRAKERIN': location
+                        };
+                        newData.push(row);
+                        no1++;
+                    }
+
+                    // Create new workbook
+                    convertedWorkbook = XLSX.utils.book_new();
+                    const newSheet = XLSX.utils.json_to_sheet(newData);
+
+                    // Set column widths
+                    const cols = ['A', 'B', 'C', 'D', 'E', 'F'];
+                    newSheet['!cols'] = cols.map(() => ({ wch: 20 }));
+
+                    XLSX.utils.book_append_sheet(convertedWorkbook, newSheet, "Converted");
+
+                    downloadBtn.disabled = false;
+                    showStatus('File converted successfully! Click the download button to save.', 'success');
+
+                } catch (error) {
+                    console.error(error);
+                    showStatus('Error processing file. Please check the format.', 'error');
+                    downloadBtn.disabled = true;
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>
