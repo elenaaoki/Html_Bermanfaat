@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary-Text Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .column {
+            flex: 1;
+            min-width: 300px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Binary-Text Converter</h1>
+    <div class="container">
+        <div class="column">
+            <h2>Binary to Text</h2>
+            <textarea id="binaryInput" placeholder="Enter binary (space-separated)"></textarea>
+            <textarea id="textOutput" readonly></textarea>
+            <button onclick="copyToClipboard('textOutput', this)">Copy</button>
+        </div>
+        <div class="column">
+            <h2>Text to Binary</h2>
+            <textarea id="textInput" placeholder="Enter text"></textarea>
+            <textarea id="binaryOutput" readonly></textarea>
+            <button onclick="copyToClipboard('binaryOutput', this)">Copy</button>
+        </div>
+    </div>
+
+    <script>
+        function binaryToText(binary) {
+            return binary.split(' ').map(bin => String.fromCharCode(parseInt(bin, 2))).join('');
+        }
+
+        function textToBinary(text) {
+            return text.split('').map(char => char.charCodeAt(0).toString(2).padStart(8, '0')).join(' ');
+        }
+
+        document.getElementById('binaryInput').addEventListener('input', function() {
+            document.getElementById('textOutput').value = binaryToText(this.value);
+        });
+
+        document.getElementById('textInput').addEventListener('input', function() {
+            document.getElementById('binaryOutput').value = textToBinary(this.value);
+        });
+
+        function copyToClipboard(elementId, button) {
+            const element = document.getElementById(elementId);
+            element.select();
+            document.execCommand('copy');
+            button.textContent = 'Copied';
+            setTimeout(() => button.textContent = 'Copy', 2000);
+        }
+    </script>
+</body>
+</html>
