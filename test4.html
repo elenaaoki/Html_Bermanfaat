@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generator Karakter (setCharacterContext)</title>
+<style>
+body {
+  font-family: Consolas, monospace;
+  background: #1e1e1e;
+  color: #eee;
+  padding: 20px;
+}
+h2 { color: #9cdcfe; }
+label { display: block; margin-top: 10px; color: #c586c0; }
+textarea, input {
+  width: 100%;
+  background: #252526;
+  color: #d4d4d4;
+  border: 1px solid #333;
+  padding: 8px;
+  border-radius: 4px;
+}
+button {
+  margin-top: 15px;
+  background: #0e639c;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+button:hover { background: #1177bb; }
+#output {
+  margin-top: 25px;
+  background: #1b1b1b;
+  border: 1px solid #333;
+  padding: 15px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  position: relative;
+}
+.copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #007acc;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.copy-btn:hover { background: #0088ff; }
+</style>
+</head>
+<body>
+<h2>Generator Script Karakter (setCharacterContext)</h2>
+
+<label>Nama Karakter:</label>
+<input type="text" id="charName" placeholder="Misal: Nico Robin">
+
+<label>Keyword (pisahkan dengan koma):</label>
+<input type="text" id="keywords" placeholder="Misal: nico robin, robin, devil child">
+
+<label>Deskripsi Karakter (gunakan format multiline):</label>
+<textarea id="description" rows="8" placeholder="Tuliskan deskripsi karakter di sini..."></textarea>
+
+<label>Dialog Template (multiline):</label>
+<textarea id="dialogue" rows="8" placeholder="Tuliskan gaya dialog atau reaksi karakter di sini..."></textarea>
+
+<button onclick="generateScript()">Generate Script</button>
+
+<div id="output" style="display:none;">
+  <button class="copy-btn" onclick="copyScript()">Salin</button>
+  <code id="scriptText"></code>
+</div>
+
+<script>
+function generateScript() {
+  const name = document.getElementById("charName").value.trim();
+  const keywords = document.getElementById("keywords").value.trim();
+  const description = document.getElementById("description").value.trim();
+  const dialogue = document.getElementById("dialogue").value.trim();
+
+  if (!name || !keywords || !description || !dialogue) {
+    alert("Lengkapi semua kolom sebelum generate!");
+    return;
+  }
+
+  const keywordArray = keywords.split(",").map(k => k.trim().toLowerCase());
+  const script = 
+`// =========================
+// ==== KARAKTER: ${name.toUpperCase()} ====
+// =========================
+setCharacterContext(
+    context,
+    "${name}",
+    ${JSON.stringify(keywordArray, null, 4)},
+    \`
+${description}
+\`,
+    \`
+${dialogue}
+\`
+);`;
+
+  document.getElementById("scriptText").textContent = script;
+  document.getElementById("output").style.display = "block";
+}
+
+function copyScript() {
+  const text = document.getElementById("scriptText").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Script karakter berhasil disalin!");
+  });
+}
+</script>
+</body>
+</html>
